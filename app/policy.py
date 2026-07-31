@@ -57,9 +57,9 @@ class PolicyEngine:
         if "enabled" in ov_tox:
             tox_enabled = ov_tox["enabled"]
 
-        threshold = base_tox.get("threshold", 0.8)
+        threshold = base_tox.get("threshold", 0.6)
         if "threshold" in ov_tox:
-            threshold = ov_tox["threshold"]
+            threshold = min(threshold, ov_tox["threshold"])
 
         base_topics = self.base.get("blocked_topics", {})
         ov_topics = overlay.get("blocked_topics", {})
