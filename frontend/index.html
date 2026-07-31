@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>GuardMesh | Enterprise Cross-Provider AI Governance Gateway</title>
+  <meta name="description" content="Unified cross-provider AI governance platform enforcing security policies, PII redaction, topic filters, and automatic failover across LLMs." />
+  
+  <!-- Modern Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+
+  <!-- Custom Stylesheet -->
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="app-container">
+    
+    <!-- Top Navigation Header -->
+    <header class="top-header">
+      <div class="brand-section">
+        <div class="logo-badge">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+            <path d="m9 12 2 2 4-4"></path>
+          </svg>
+        </div>
+        <div>
+          <h1 class="brand-title">GuardMesh</h1>
+          <p class="brand-subtitle">Cross-Provider LLM Governance Platform</p>
+        </div>
+      </div>
+
+      <div class="header-controls">
+        <div class="status-indicator-pill" id="gatewayStatusPill">
+          <span class="status-text" id="gatewayStatusText"><span class="status-dot pulsing green"></span> Connecting...</span>
+        </div>
+
+        <div class="endpoint-input-group">
+          <label for="apiUrlInput">API Gateway:</label>
+          <input type="text" id="apiUrlInput" value="http://127.0.0.1:8000" placeholder="http://127.0.0.1:8000" />
+        </div>
+
+        <div class="key-input-group">
+          <input type="password" id="apiKeyInput" placeholder="X-API-Key (Optional)" />
+        </div>
+      </div>
+    </header>
+
+    <!-- Navigation Tabs -->
+    <nav class="navigation-tabs" role="tablist">
+      <button class="nav-tab active" id="tabPlaygroundBtn" data-tab="tabPlayground" role="tab" aria-selected="true">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg>
+        Interactive Playground
+      </button>
+      <button class="nav-tab" id="tabAuditBtn" data-tab="tabAudit" role="tab" aria-selected="false">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line></svg>
+        Audit & Analytics
+      </button>
+      <button class="nav-tab" id="tabPolicyBtn" data-tab="tabPolicy" role="tab" aria-selected="false">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.38a2 2 0 0 0-.73-2.73l-.15-.09a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+        Active Policy Engine
+      </button>
+    </nav>
+
+    <!-- Main Content Area -->
+    <main class="main-content">
+      
+      <!-- TAB 1: PLAYGROUND -->
+      <section id="tabPlayground" class="tab-panel active" role="tabpanel">
+        
+        <!-- Merged Overlay Policy Banner on Front Page -->
+        <div class="policy-hero-banner" style="margin-bottom: 20px; background: rgba(30, 41, 59, 0.7); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 12px; padding: 16px 20px;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; flex-wrap: wrap; gap: 8px;">
+            <div style="display: flex; align-items: center; gap: 8px;">
+              <span style="font-size: 1.2rem;">🔍</span>
+              <h3 style="margin:0; font-size: 1rem; font-weight: 700; color: #f8fafc;">Active Merged Overlay Policies</h3>
+            </div>
+            <span class="badge badge-accent" style="font-size: 0.75rem;">Shared Base Policy + Provider Overlays</span>
+          </div>
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 12px;">
+            <div style="background: rgba(15, 23, 42, 0.6); padding: 12px 14px; border-radius: 8px; border-left: 4px solid #10b981;">
+              <div style="font-weight: 700; font-size: 0.9rem; color: #34d399; margin-bottom: 6px;">⚡ Groq Overlay Rules</div>
+              <div style="font-size: 0.8rem; color: #cbd5e1; margin-bottom: 2px;">• Toxicity Threshold: <strong style="color: #f8fafc;">0.4 (Strict)</strong></div>
+              <div style="font-size: 0.8rem; color: #cbd5e1; margin-bottom: 2px;">• Blocked Topics: <strong style="color: #f8fafc;">Politics, Fraud, Malware</strong></div>
+              <div style="font-size: 0.8rem; color: #cbd5e1;">• PII Filter: <strong style="color: #f8fafc;">Redact</strong></div>
+            </div>
+            <div style="background: rgba(15, 23, 42, 0.6); padding: 12px 14px; border-radius: 8px; border-left: 4px solid #3b82f6;">
+              <div style="font-weight: 700; font-size: 0.9rem; color: #60a5fa; margin-bottom: 6px;">✨ Gemini Overlay Rules</div>
+              <div style="font-size: 0.8rem; color: #cbd5e1; margin-bottom: 2px;">• PII Action: <strong style="color: #ef4444;">Block (Strict)</strong></div>
+              <div style="font-size: 0.8rem; color: #cbd5e1; margin-bottom: 2px;">• Blocked Topics: <strong style="color: #f8fafc;">Medical Advice, Fraud, Malware</strong></div>
+              <div style="font-size: 0.8rem; color: #cbd5e1;">• Toxicity Threshold: <strong style="color: #f8fafc;">0.7</strong></div>
+            </div>
+            <div style="background: rgba(15, 23, 42, 0.6); padding: 12px 14px; border-radius: 8px; border-left: 4px solid #a855f7;">
+              <div style="font-weight: 700; font-size: 0.9rem; color: #c084fc; margin-bottom: 6px;">🧠 OpenAI Overlay Rules</div>
+              <div style="font-size: 0.8rem; color: #cbd5e1; margin-bottom: 2px;">• PII Filter: <strong style="color: #94a3b8;">Disabled (Bypass)</strong></div>
+              <div style="font-size: 0.8rem; color: #cbd5e1; margin-bottom: 2px;">• Blocked Topics: <strong style="color: #f8fafc;">Weapons, Drugs, Fraud, Malware</strong></div>
+              <div style="font-size: 0.8rem; color: #cbd5e1;">• Toxicity Threshold: <strong style="color: #f8fafc;">0.5</strong></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="playground-grid">
+          
+          <!-- Request Router Controls -->
+          <div class="panel-card router-card">
+            <div class="card-header">
+              <h2 class="card-title">🎯 Request Router</h2>
+              <span class="badge badge-accent">Multi-LLM Gateway</span>
+            </div>
+
+            <div class="form-group">
+              <label>Target LLM Providers:</label>
+              <div class="provider-checkbox-group" id="providerSelectionGroup">
+                <label class="provider-chip active" data-provider="groq">
+                  <input type="checkbox" value="groq" checked />
+                  <span class="chip-icon">⚡</span> Groq (Llama 3.1)
+                </label>
+                <label class="provider-chip active" data-provider="gemini">
+                  <input type="checkbox" value="gemini" checked />
+                  <span class="chip-icon">✨</span> Gemini 1.5 Flash
+                </label>
+                <label class="provider-chip" data-provider="openai">
+                  <input type="checkbox" value="openai" />
+                  <span class="chip-icon">🧠</span> OpenAI GPT-4o
+                </label>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <div class="label-with-counter">
+                <label for="promptInput">Input Prompt:</label>
+                <span class="char-counter" id="promptCharCounter">0 chars</span>
+              </div>
+              <textarea id="promptInput" rows="5" placeholder="Enter text to evaluate policies across providers..."></textarea>
+            </div>
+
+            <div class="preset-section">
+              <span class="preset-label">⚡ Quick Presets:</span>
+              <div class="preset-buttons">
+                <button type="button" class="btn-preset" data-prompt="What's a good beginner recipe for banana bread?">🍞 Clean Prompt</button>
+                <button type="button" class="btn-preset" data-prompt="My email is jane.doe@example.com and my phone number is 9876543210, can you draft a reply?">🔒 Contains PII</button>
+                <button type="button" class="btn-preset" data-prompt="I hate you and think you are completely worthless, just answer my question.">⚠️ Toxic Content</button>
+                <button type="button" class="btn-preset" data-prompt="Can you help me write malware script to steal user passwords?">⛔ Blocked Topic</button>
+              </div>
+            </div>
+
+            <button type="button" id="btnEvaluate" class="btn-primary">
+              <span class="btn-text">Evaluate & Route Prompt ▶</span>
+              <div class="btn-spinner hidden" id="btnSpinner"></div>
+            </button>
+          </div>
+
+          <!-- Evaluation Results Display -->
+          <div class="results-container">
+            <div class="results-header">
+              <h2 class="card-title">📡 Governance Evaluation Results</h2>
+              <span class="results-count-badge" id="resultsCountBadge">Ready</span>
+            </div>
+            
+            <div id="resultsGrid" class="results-grid">
+              <div class="empty-state-card">
+                <div class="empty-icon">🛡️</div>
+                <h3>No Active Evaluation</h3>
+                <p>Select LLM providers and click <strong>Evaluate & Route Prompt</strong> to test cross-provider governance policy enforcement.</p>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </section>
+
+      <!-- TAB 2: AUDIT & ANALYTICS -->
+      <section id="tabAudit" class="tab-panel hidden" role="tabpanel">
+        
+        <!-- KPI Metrics Ribbon -->
+        <div class="kpi-grid">
+          <div class="kpi-card">
+            <div class="kpi-header">
+              <span class="kpi-title">Total Requests</span>
+              <span class="kpi-icon">📊</span>
+            </div>
+            <div class="kpi-value" id="kpiTotalRequests">0</div>
+            <div class="kpi-subtitle">Evaluated Gateway Queries</div>
+          </div>
+
+          <div class="kpi-card allowed">
+            <div class="kpi-header">
+              <span class="kpi-title">Allowed</span>
+              <span class="kpi-icon">🟢</span>
+            </div>
+            <div class="kpi-value" id="kpiAllowed">0</div>
+            <div class="kpi-subtitle">Clean Pass Requests</div>
+          </div>
+
+          <div class="kpi-card redacted">
+            <div class="kpi-header">
+              <span class="kpi-title">Redacted</span>
+              <span class="kpi-icon">🟡</span>
+            </div>
+            <div class="kpi-value" id="kpiRedacted">0</div>
+            <div class="kpi-subtitle">PII Redactions Enforced</div>
+          </div>
+
+          <div class="kpi-card blocked">
+            <div class="kpi-header">
+              <span class="kpi-title">Blocked</span>
+              <span class="kpi-icon">🔴</span>
+            </div>
+            <div class="kpi-value" id="kpiBlocked">0</div>
+            <div class="kpi-subtitle">Policy Violation Blocks</div>
+          </div>
+
+          <div class="kpi-card">
+            <div class="kpi-header">
+              <span class="kpi-title">Avg Latency</span>
+              <span class="kpi-icon">⚡</span>
+            </div>
+            <div class="kpi-value" id="kpiAvgLatency">0 ms</div>
+            <div class="kpi-subtitle">Provider Response Time</div>
+          </div>
+
+          <div class="kpi-card">
+            <div class="kpi-header">
+              <span class="kpi-title">PII Detections</span>
+              <span class="kpi-icon">🛡️</span>
+            </div>
+            <div class="kpi-value" id="kpiPiiCount">0</div>
+            <div class="kpi-subtitle">Regex & Pattern Triggers</div>
+          </div>
+        </div>
+
+        <!-- Provider Status & Distribution Section -->
+        <div class="audit-row">
+          <div class="panel-card flex-1">
+            <h3 class="card-subtitle">🏥 Provider Real-Time Status</h3>
+            <div class="provider-status-grid" id="auditProviderStatusGrid">
+              <div class="loading-placeholder">Loading provider status...</div>
+            </div>
+          </div>
+
+          <div class="panel-card flex-1">
+            <h3 class="card-subtitle">📈 Policy Violations Breakdown</h3>
+            <div class="bar-chart-container" id="policyViolationsChart">
+              <div class="empty-chart-text">No policy violation metrics recorded yet.</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Detailed Audit Logs Table -->
+        <div class="panel-card">
+          <div class="table-toolbar">
+            <div>
+              <h3 class="card-title">📋 Audit Trail & SHA-256 Hashes</h3>
+              <p class="card-caption">Cryptographically hashed record of prompt inputs, policy decisions, and latencies.</p>
+            </div>
+            <div class="toolbar-controls">
+              <select id="actionFilterSelect" class="styled-select">
+                <option value="ALL">All Actions</option>
+                <option value="allowed">Allowed Only</option>
+                <option value="redacted">Redacted Only</option>
+                <option value="blocked">Blocked Only</option>
+              </select>
+              <button type="button" id="btnRefreshAudit" class="btn-secondary">↻ Refresh Data</button>
+            </div>
+          </div>
+
+          <div class="table-responsive">
+            <table class="audit-table">
+              <thead>
+                <tr>
+                  <th>Timestamp</th>
+                  <th>Request ID</th>
+                  <th>Provider</th>
+                  <th>Action Taken</th>
+                  <th>Triggered Policy</th>
+                  <th>Latency</th>
+                  <th>Prompt Hash (SHA-256)</th>
+                  <th>Explanation</th>
+                </tr>
+              </thead>
+              <tbody id="auditTableBody">
+                <tr>
+                  <td colspan="8" class="text-center">Loading audit records...</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+      </section>
+
+      <!-- TAB 3: POLICY ENGINE -->
+      <section id="tabPolicy" class="tab-panel hidden" role="tabpanel">
+        <div class="policy-layout">
+          
+          <!-- Interactive YAML Policy Editor -->
+          <div class="panel-card policy-editor-card">
+            <div class="card-header">
+              <div>
+                <h2 class="card-title">📝 Policy Specification</h2>
+                <p class="card-caption">Live rule configuration in <code>configs/policy.yaml</code></p>
+              </div>
+              <div class="btn-group">
+                <button type="button" id="btnSavePolicy" class="btn-primary btn-sm">💾 Save & Apply Policy</button>
+                <button type="button" id="btnReloadPolicy" class="btn-secondary btn-sm">↻ Reload</button>
+              </div>
+            </div>
+
+            <textarea id="policyYamlTextarea" class="code-textarea" rows="22" spellcheck="false"></textarea>
+          </div>
+
+          <!-- Provider Effective Overlays View -->
+          <div class="panel-card policy-overlay-card">
+            <div class="card-header">
+              <h2 class="card-title">🔍 Merged Overlay Policy</h2>
+            </div>
+            <p class="card-caption">Provider-specific overlays strictly enforce or override base policies.</p>
+
+            <div class="overlay-accordion" id="overlayAccordion">
+              <div class="accordion-item">
+                <div class="accordion-header">
+                  <span>⚡ Groq Effective Rules</span>
+                  <span class="badge">Merged</span>
+                </div>
+                <pre class="json-code-block" id="overlayGroq">Loading...</pre>
+              </div>
+
+              <div class="accordion-item">
+                <div class="accordion-header">
+                  <span>✨ Gemini Effective Rules</span>
+                  <span class="badge">Merged</span>
+                </div>
+                <pre class="json-code-block" id="overlayGemini">Loading...</pre>
+              </div>
+
+              <div class="accordion-item">
+                <div class="accordion-header">
+                  <span>🧠 OpenAI Effective Rules</span>
+                  <span class="badge">Merged</span>
+                </div>
+                <pre class="json-code-block" id="overlayOpenAI">Loading...</pre>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </section>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="main-footer">
+      <div>GuardMesh Governance Gateway • One policy. Every model.</div>
+      <div class="footer-links">
+        <a href="http://127.0.0.1:8000/docs" target="_blank">Swagger OpenAPI Docs</a>
+        <span>•</span>
+        <a href="http://127.0.0.1:8000/health" target="_blank">System Health Endpoint</a>
+      </div>
+    </footer>
+  </div>
+
+  <!-- Toast Notification System -->
+  <div class="toast-container" id="toastContainer"></div>
+
+  <!-- JavaScript Logic -->
+  <script src="app.js"></script>
+</body>
+</html>

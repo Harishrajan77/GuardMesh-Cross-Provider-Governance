@@ -1,29 +1,56 @@
+version: "1.0.0"
+description: "GuardMesh Enterprise Governance & Provider Overlay Policies"
+
 base:
   pii:
     enabled: true
-    action: redact             
-
+    patterns:
+      - email
+      - phone
+      - ssn
+      - credit_card
+    action: redact
   toxicity:
     enabled: true
-    threshold: 0.6               
-
+    threshold: 0.8
   blocked_topics:
     enabled: true
     keywords:
       - malware
-      - credential theft
-      - bioweapon
+      - fraud
+    action: block
 
 providers:
-  openai: {}
-
   groq:
     toxicity:
-      threshold: 0.4    
+      enabled: true
+      threshold: 0.4
+    blocked_topics:
+      enabled: true
+      keywords:
+        - politics
 
   gemini:
     pii:
-      action: block                
+      enabled: true
+      action: block
+    toxicity:
+      enabled: true
+      threshold: 0.7
     blocked_topics:
+      enabled: true
       keywords:
-        - explosive device         
+        - medical
+
+  openai:
+    pii:
+      enabled: false
+      action: redact
+    toxicity:
+      enabled: true
+      threshold: 0.5
+    blocked_topics:
+      enabled: true
+      keywords:
+        - weapons
+        - drugs

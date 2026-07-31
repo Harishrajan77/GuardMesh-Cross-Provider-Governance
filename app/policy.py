@@ -81,34 +81,46 @@ class PolicyEngine:
 
         overlay = self.overlays.get(provider, {}) or {}
 
-        # PII: pick whichever action is stricter (block > redact > allow)
+        # PII: allow provider override or pick stricter action
         base_pii, ov_pii = self.base.get("pii", {}), overlay.get("pii", {})
+        pii_enabled = base_pii.get("enabled", True)
+        if "enabled" in ov_pii:
+            pii_enabled = ov_pii["enabled"]
+
         pii_action = base_pii.get("action", "redact")
         if "action" in ov_pii:
-            pii_action = max([pii_action, ov_pii["action"]], key=lambda a: ACTION_RANK[a])
+            pii_action = max([pii_action, ov_pii["action"]], key=lambda a: ACTION_RANK.get(a, 1))
 
-        # Toxicity: lower threshold = stricter, so take the minimum
+        # Toxicity: provider specific threshold
         base_tox, ov_tox = self.base.get("toxicity", {}), overlay.get("toxicity", {})
-        threshold = base_tox.get("threshold", 0.6)
-        if "threshold" in ov_tox:
-            threshold = min(threshold, ov_tox["threshold"])
+        tox_enabled = base_tox.get("enabled", True)
+        if "enabled" in ov_tox:
+            tox_enabled = ov_tox["enabled"]
 
-        # Blocked topics: overlay can only ADD keywords, never remove any
+        threshold = base_tox.get("threshold", 0.8)
+        if "threshold" in ov_tox:
+            threshold = ov_tox["threshold"]
+
+        # Blocked topics: base keywords UNION overlay keywords
         base_topics = self.base.get("blocked_topics", {})
         ov_topics = overlay.get("blocked_topics", {})
+        topics_enabled = base_topics.get("enabled", True)
+        if "enabled" in ov_topics:
+            topics_enabled = ov_topics["enabled"]
+
         keywords = sorted(set(base_topics.get("keywords", [])) | set(ov_topics.get("keywords", [])))
 
         merged = {
             "pii": {
-                "enabled": base_pii.get("enabled", True) or ov_pii.get("enabled", False),
+                "enabled": pii_enabled,
                 "action": pii_action,
             },
             "toxicity": {
-                "enabled": base_tox.get("enabled", True) or ov_tox.get("enabled", False),
+                "enabled": tox_enabled,
                 "threshold": threshold,
             },
             "blocked_topics": {
-                "enabled": base_topics.get("enabled", True) or ov_topics.get("enabled", False),
+                "enabled": topics_enabled,
                 "keywords": keywords,
             },
         }

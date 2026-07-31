@@ -39,7 +39,7 @@ class BaseProvider(ABC):
         # Offload LLM call to worker thread pool so FastAPI main loop is never blocked
         response = await asyncio.wait_for(
             asyncio.to_thread(llm.invoke, [HumanMessage(content=prompt)]),
-            timeout=12.0
+            timeout=20.0
         )
         return response.content
 
@@ -65,7 +65,7 @@ class OpenAIProvider(BaseProvider):
 
     def _build(self, model: str) -> BaseChatModel:
         from langchain_openai import ChatOpenAI
-        return ChatOpenAI(model=model, api_key=self.api_key, max_tokens=300)
+        return ChatOpenAI(model=model, api_key=self.api_key, max_tokens=1000)
 
     def get_llm(self, model: str | None = None) -> BaseChatModel:
         if model and model != self.default_model:
@@ -85,7 +85,7 @@ class GroqProvider(BaseProvider):
 
     def _build(self, model: str) -> BaseChatModel:
         from langchain_groq import ChatGroq
-        return ChatGroq(model=model, api_key=self.api_key, max_tokens=300)
+        return ChatGroq(model=model, api_key=self.api_key, max_tokens=1000)
 
     def get_llm(self, model: str | None = None) -> BaseChatModel:
         if model and model != self.default_model:
@@ -108,7 +108,7 @@ class GeminiProvider(BaseProvider):
         return ChatGoogleGenerativeAI(
             model=model,
             google_api_key=self.api_key,
-            max_output_tokens=300
+            max_output_tokens=1000
         )
 
     def get_llm(self, model: str | None = None) -> BaseChatModel:

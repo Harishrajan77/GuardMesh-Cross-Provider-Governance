@@ -35,12 +35,25 @@ async def lifespan(app: FastAPI):
     yield
 
 
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
+
 app = FastAPI(
     title="GuardMesh",
     description="One policy. Every model. Unified AI governance across LLM providers.",
     version="1.0.0",
     lifespan=lifespan,
 )
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+app.mount("/ui", StaticFiles(directory="frontend", html=True), name="ui")
 
 
 def require_api_key(x_api_key: str | None = Header(default=None)):
@@ -50,16 +63,12 @@ def require_api_key(x_api_key: str | None = Header(default=None)):
     return True
 
 
+from fastapi.responses import RedirectResponse
+
 @app.get("/")
 def root():
-    """Root endpoint providing quick links to API docs and health check."""
-    return {
-        "message": "Welcome to GuardMesh AI Governance Platform Gateway",
-        "docs": "/docs",
-        "health": "/health",
-        "providers": "/providers",
-        "version": "1.0.0"
-    }
+    """Root endpoint automatically redirects to the Web UI front page."""
+    return RedirectResponse(url="/ui/")
 
 
 def get_hash(text: str | None) -> str | None:
