@@ -1,0 +1,29 @@
+base:
+  pii:
+    enabled: true
+    action: redact             
+
+  toxicity:
+    enabled: true
+    threshold: 0.6               
+
+  blocked_topics:
+    enabled: true
+    keywords:
+      - malware
+      - credential theft
+      - bioweapon
+
+providers:
+  openai: {}
+
+  groq:
+    toxicity:
+      threshold: 0.4    
+
+  gemini:
+    pii:
+      action: block                
+    blocked_topics:
+      keywords:
+        - explosive device         

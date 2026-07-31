@@ -1,0 +1,60 @@
+version: '3.8'
+
+services:
+  # PostgreSQL database service
+  db:
+    image: postgres:15-alpine
+    container_name: guardmesh-db
+    restart: always
+    environment:
+      POSTGRES_USER: guardmesh_user
+      POSTGRES_PASSWORD: guardmesh_secure_password
+      POSTGRES_DB: guardmesh_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U guardmesh_user -d guardmesh_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # FastAPI API service
+  api:
+    build:
+      context: .
+      target: runner
+    container_name: guardmesh-api
+    restart: always
+    ports:
+      - "8000:8000"
+    environment:
+      - DATABASE_URL=postgresql://guardmesh_user:guardmesh_secure_password@db:5432/guardmesh_db
+    env_file:
+      - .env
+    depends_on:
+      db:
+        condition: service_healthy
+    volumes:
+      - ./configs:/app/configs
+
+  # Streamlit Dashboard service
+  dashboard:
+    build:
+      context: .
+      target: runner
+    container_name: guardmesh-dashboard
+    command: streamlit run dashboard/app.py --server.port 8501 --server.address 0.0.0.0
+    restart: always
+    ports:
+      - "8501:8501"
+    environment:
+      - GUARDMESH_API_URL=http://api:8000
+    env_file:
+      - .env
+    depends_on:
+      - api
+
+volumes:
+  pgdata:

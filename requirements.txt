@@ -1,0 +1,27 @@
+fastapi>=0.110
+uvicorn[standard]>=0.29
+pydantic>=2.6
+pydantic-settings>=2.2
+pyyaml>=6.0
+python-dotenv>=1.0
+scikit-learn>=1.4
+streamlit>=1.33
+pandas>=2.2
+requests>=2.31
+
+# LangChain -- used for two things:
+#  1. Provider abstraction: ChatOpenAI / ChatGroq / ChatGoogleGenerativeAI
+#     all share one interface (app/providers.py), so main.py never
+#     talks to a vendor SDK directly.
+#  2. A real chain (PromptTemplate | LLM | StrOutputParser) that
+#     generates plain-English policy explanations (app/explain.py).
+langchain-core>=0.3
+langchain-openai>=0.2
+langchain-groq>=0.2
+langchain-google-genai>=2.0
+
+pytest>=8.0
+pytest-asyncio>=0.24
+
+sqlalchemy>=2.0
+psycopg2-binary>=2.9
