@@ -2,8 +2,6 @@
 
 **One policy. Every model. Unified AI governance across LLM providers.**
 
-PS-3.3 -- Cross-Provider Guardrail Policy Engine.
-
 ---
 
 ## 📖 Overview
@@ -34,55 +32,11 @@ graph TD
     Dashboard[Streamlit Dashboard] -->|Audit & Metrics API| GM
 ```
 
-### Request Flow & Execution Sequence
-
-```mermaid
-sequenceDiagram
-    autonumber
-    actor Client as Client App
-    participant GM as GuardMesh Gateway
-    participant PE as Policy Engine
-    participant LLM as Active LLM Provider
-    participant DB as Audit Database
-    participant EX as Explanation Chain
-
-    Client->>GM: POST /chat (prompt, provider)
-    GM->>PE: evaluate(prompt)
-    PE-->>GM: violations list (if any)
-    alt Action is 'blocked'
-        GM->>EX: explain(action, policy)
-        EX-->>GM: plain-English explanation
-        GM->>DB: record(action_taken='blocked')
-        GM-->>Client: ChatResponse (blocked, explanation, details)
-    else Action is 'allowed' or 'redacted'
-        GM->>LLM: chat(clean_prompt)
-        alt API Call Fails
-            GM->>LLM: retry once
-            alt Retry Fails
-                GM->>GM: Automatic Provider Failover (healthy backup)
-                GM->>LLM: chat(clean_prompt) [backup]
-            end
-        end
-        LLM-->>GM: raw_response
-        GM->>PE: evaluate(raw_response)
-        PE-->>GM: violations list (if any)
-        alt Response Action is 'blocked'
-            GM->>EX: explain(...)
-            EX-->>GM: explanation
-            GM->>DB: record(action_taken='blocked')
-            GM-->>Client: ChatResponse (blocked, explanation)
-        else Response Action is 'allowed' or 'redacted'
-            GM->>DB: record(action_taken='allowed'/'redacted')
-            GM-->>Client: ChatResponse (clean_reply)
-        end
-    end
-```
-
 ---
 
 ## 🛠️ Key Features
 
-1. **Unified Policy Engine**: Inspects prompts/responses for PII, toxic language, and blocked topics locally. Supports exact keyword matches and TF-IDF semantic similarity checking.
+1. **Unified Policy Engine**: Inspects prompts and responses for PII, toxic language, and blocked topics locally using keyword rules and TF-IDF semantic similarity checking.
 2. **Provider Failover & Retry**: Automatically retries a failed provider once. If the retry fails, it seamlessly routes the request to another healthy configured provider to ensure maximum uptime.
 3. **Structured Explainability**: Blocked/redacted responses return a detailed explanation structure (remediation suggestion, violated policy, action taken, and LangChain-derived explanation).
 4. **Rich Auditing Database**: Records request IDs (UUID), prompt/response hashes, triggered policies, detected violations, detailed latencies, and versioning.
@@ -118,48 +72,6 @@ docker compose up --build
 
 *   **API Service**: Runs on [http://localhost:8000](http://localhost:8000) (includes health checks).
 *   **Dashboard Service**: Runs on [http://localhost:8501](http://localhost:8501).
-
----
-
-## ☁️ AWS Production Deployment Guide
-
-We recommend deploying GuardMesh on AWS using **Amazon ECS (Elastic Container Service)** with **AWS Fargate** (serverless containers) and **Amazon RDS (Relational Database Service)** for PostgreSQL.
-
-### Architecture Topology
-```
-           [ Route 53 (DNS) ]
-                   │
-         [ Application Load Balancer ]
-         ┌─────────┴─────────┐
-    [ ECS Task ]        [ ECS Task ]  (FastAPI container, Fargate)
-         └─────────┬─────────┘
-         [ Amazon RDS Postgres ]
-```
-
-### Deployment Steps
-
-1. **Set Up RDS Database**:
-   - Create a PostgreSQL database instance on RDS.
-   - Configure a Security Group to allow inbound traffic on port 5432 only from the ECS security group.
-   - Save the endpoint string: `postgresql://username:password@rds-endpoint:5432/dbname`.
-
-2. **Push Containers to Amazon ECR**:
-   - Create Amazon ECR (Elastic Container Registry) repositories for both `api` and `dashboard`.
-   - Build and tag images:
-     ```bash
-     docker build -t guardmesh-api .
-     docker tag guardmesh-api:latest <aws_account_id>.dkr.ecr.<region>.amazonaws.com/guardmesh-api:latest
-     docker push <aws_account_id>.dkr.ecr.<region>.amazonaws.com/guardmesh-api:latest
-     ```
-
-3. **Configure ECS Task Definition**:
-   - Define a task with Fargate compatibility.
-   - Add environment variables (like `DATABASE_URL`, `OPENAI_API_KEY`, etc.) utilizing AWS Systems Manager Parameter Store or Secrets Manager to keep credentials safe.
-   - Add port mapping for port `8000` (FastAPI) and setup the `/health` endpoint for ECS load balancer health checks.
-
-4. **Deploy Application Load Balancer (ALB)**:
-   - Setup ALB forwarding traffic from public ports (`80`/`443`) to the ECS targets.
-   - Set healthcheck path to `/health` with a timeout of 5s.
 
 ---
 
@@ -224,5 +136,5 @@ Sends a prompt to the policy engine and routes to the provider.
 ## 🔮 Future Enhancements
 
 - **Caching Layer**: Integrate Redis caching to store model completions for identical redacted prompts, reducing cost.
-- **Dynamic Policy Reload**: Push updates to `policy.yaml` through S3 event triggers to update configurations across all ECS tasks without service interruption.
+- **Dynamic Policy Reload**: Push updates to `policy.yaml` through S3 event triggers to update configurations across tasks without service interruption.
 - **Custom Policy Rules**: Add a compiler for custom policies allowing regular expression mappings inside the dashboard directly.
