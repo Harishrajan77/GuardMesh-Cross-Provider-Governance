@@ -22,6 +22,18 @@ def free_port(port: int):
         except Exception:
             pass
 
+def start_backend():
+    print("[+] Starting FastAPI Gateway on http://127.0.0.1:8000...")
+    return subprocess.Popen(
+        [sys.executable, "-m", "uvicorn", "app.main:app", "--port", "8000", "--host", "127.0.0.1"]
+    )
+
+def start_frontend():
+    print("[+] Starting Streamlit Dashboard on http://localhost:8501...")
+    return subprocess.Popen(
+        [sys.executable, "-m", "streamlit", "run", "dashboard/app.py"]
+    )
+
 def main():
     print("=" * 60)
     print(" GuardMesh Enterprise Unified Launcher")
@@ -33,22 +45,12 @@ def main():
     free_port(8501)
     time.sleep(1)
     
-    # Start the backend API server
-    print("[2/3] Starting FastAPI Gateway on http://127.0.0.1:8000...")
-    backend = subprocess.Popen(
-        [sys.executable, "-m", "uvicorn", "app.main:app", "--port", "8000", "--host", "127.0.0.1"]
-    )
-    
-    # Wait for backend initialization
+    # Start processes
+    backend = start_backend()
     time.sleep(3)
-    
-    # Start the Streamlit dashboard
-    print("[3/3] Starting Streamlit Dashboard on http://localhost:8501...")
-    frontend = subprocess.Popen(
-        [sys.executable, "-m", "streamlit", "run", "dashboard/app.py"]
-    )
-    
+    frontend = start_frontend()
     time.sleep(2)
+    
     print("\n" + "=" * 60)
     print(" [SUCCESS] GuardMesh Gateway & Dashboard are active!")
     print("  - Backend Gateway API:  http://127.0.0.1:8000")
@@ -65,14 +67,19 @@ def main():
     
     try:
         while True:
-            # Check if either process exited unexpectedly
+            # Auto-restart backend if terminated unexpectedly
             if backend.poll() is not None:
-                print(f"[ALERT] Backend exited with code: {backend.poll()}")
-                break
+                print(f"[RECOVERY] Backend exited with code {backend.poll()}. Restarting backend...")
+                free_port(8000)
+                time.sleep(1)
+                backend = start_backend()
+            # Auto-restart frontend if terminated unexpectedly
             if frontend.poll() is not None:
-                print(f"[ALERT] Frontend exited with code: {frontend.poll()}")
-                break
-            time.sleep(1)
+                print(f"[RECOVERY] Frontend exited with code {frontend.poll()}. Restarting frontend...")
+                free_port(8501)
+                time.sleep(1)
+                frontend = start_frontend()
+            time.sleep(2)
     except KeyboardInterrupt:
         print("\nStopping GuardMesh services...")
     finally:
