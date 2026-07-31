@@ -1,6 +1,4 @@
-// GuardMesh Web Application Client Logic
 document.addEventListener("DOMContentLoaded", () => {
-  // DOM Elements
   const apiUrlInput = document.getElementById("apiUrlInput");
   const apiKeyInput = document.getElementById("apiKeyInput");
   const gatewayStatusPill = document.getElementById("gatewayStatusPill");
@@ -36,7 +34,6 @@ document.addEventListener("DOMContentLoaded", () => {
   const overlayGemini = document.getElementById("overlayGemini");
   const overlayOpenAI = document.getElementById("overlayOpenAI");
 
-  // Helper: Get Base API URL dynamically
   function getApiUrl() {
     const inputVal = apiUrlInput.value.trim().replace(/\/+$/, "");
     if (inputVal) return inputVal;
@@ -46,12 +43,10 @@ document.addEventListener("DOMContentLoaded", () => {
     return "http://127.0.0.1:8000";
   }
 
-  // Set default API input URL dynamically if served over HTTP
   if (window.location.origin && !window.location.origin.startsWith("file://") && window.location.origin !== "null") {
     apiUrlInput.value = window.location.origin;
   }
 
-  // Helper: Get Custom Headers
   function getHeaders() {
     const headers = { "Content-Type": "application/json" };
     const key = apiKeyInput.value.trim();
@@ -59,7 +54,6 @@ document.addEventListener("DOMContentLoaded", () => {
     return headers;
   }
 
-  // Toast Notification System
   function showToast(message, type = "success") {
     const container = document.getElementById("toastContainer");
     const toast = document.createElement("div");
@@ -72,7 +66,6 @@ document.addEventListener("DOMContentLoaded", () => {
     }, 3500);
   }
 
-  // Check Gateway System Health
   async function checkGatewayHealth() {
     try {
       const res = await fetch(`${getApiUrl()}/health`, { headers: getHeaders() });
@@ -88,7 +81,6 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
-  // Tab Navigation Switching
   navTabs.forEach((tab) => {
     tab.addEventListener("click", () => {
       const targetPanelId = tab.getAttribute("data-tab");
@@ -115,7 +107,6 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   });
 
-  // Provider Chip Selection Fix
   document.querySelectorAll('#providerSelectionGroup input[type="checkbox"]').forEach((cb) => {
     cb.addEventListener("change", () => {
       const chip = cb.closest(".provider-chip");
@@ -123,12 +114,10 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   });
 
-  // Prompt Character Counter
   promptInput.addEventListener("input", () => {
     promptCharCounter.textContent = `${promptInput.value.length} chars`;
   });
 
-  // Quick Presets Click Handler
   document.querySelectorAll(".btn-preset").forEach((btn) => {
     btn.addEventListener("click", () => {
       promptInput.value = btn.getAttribute("data-prompt");
@@ -136,7 +125,6 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   });
 
-  // Evaluation Handler
   btnEvaluate.addEventListener("click", async () => {
     const selectedProviders = Array.from(
       document.querySelectorAll('#providerSelectionGroup input[type="checkbox"]:checked')
@@ -154,7 +142,6 @@ document.addEventListener("DOMContentLoaded", () => {
       return;
     }
 
-    // UI Loading State
     btnEvaluate.disabled = true;
     btnSpinner.classList.remove("hidden");
     resultsGrid.innerHTML = "";
@@ -183,12 +170,10 @@ document.addEventListener("DOMContentLoaded", () => {
 
     const results = await Promise.all(evalPromises);
 
-    // Reset Button State
     btnEvaluate.disabled = false;
     btnSpinner.classList.add("hidden");
     resultsCountBadge.textContent = `${results.length} Provider(s) Evaluated`;
 
-    // Render Cards
     renderResultsCards(results);
   });
 
@@ -255,7 +240,6 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-  // Load Audit Analytics Data
   async function loadAuditAnalytics() {
     try {
       const [summaryRes, logsRes, healthRes] = await Promise.all([
@@ -373,7 +357,6 @@ document.addEventListener("DOMContentLoaded", () => {
     showToast("Audit analytics data refreshed.", "success");
   });
 
-  // Load Policy Engine Data
   async function loadPolicyEngineData() {
     try {
       const [effGroq, effGemini, effOpenAI] = await Promise.all([
@@ -386,7 +369,6 @@ document.addEventListener("DOMContentLoaded", () => {
       overlayGemini.textContent = JSON.stringify(effGemini, null, 2);
       overlayOpenAI.textContent = JSON.stringify(effOpenAI, null, 2);
 
-      // Populate textarea with structured overlay policy template if missing or unpopulated
       if (!policyYamlTextarea.value.trim() || !policyYamlTextarea.value.includes("providers:")) {
         policyYamlTextarea.value = `version: "1.0.0"
 description: "GuardMesh Enterprise Governance & Provider Overlay Policies"
@@ -490,7 +472,6 @@ providers:
     }
   });
 
-  // Initialize System Health Check
   checkGatewayHealth();
   setInterval(checkGatewayHealth, 10000);
 });

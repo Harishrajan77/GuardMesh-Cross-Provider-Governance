@@ -1,7 +1,3 @@
-"""
-Audit log storage using SQLAlchemy. Supports both SQLite (local development)
-and PostgreSQL (production environments).
-"""
 import hashlib
 import time
 import uuid
@@ -29,25 +25,23 @@ class AuditLog(Base):
     prompt_hash = Column(String(64), nullable=False)
     response_hash = Column(String(64), nullable=True)
     triggered_policy = Column(String(100), nullable=True)
-    triggered_policies = Column(Text, nullable=True)  # JSON-encoded list/dict
-    detected_violations = Column(Text, nullable=True)  # JSON-encoded list/dict
+    triggered_policies = Column(Text, nullable=True)
+    detected_violations = Column(Text, nullable=True)
     action_taken = Column(String(50), nullable=False)
     explanation = Column(Text, nullable=True)
     provider_latency = Column(Float, nullable=True)
     policy_evaluation_time = Column(Float, nullable=True)
-    total_request_latency = Column(Float, nullable=False)  # Map to original latency_ms
+    total_request_latency = Column(Float, nullable=False)
     policy_version = Column(String(50), nullable=True)
     status = Column(String(50), nullable=False)
-    latency_ms = Column(Float, nullable=False)  # Keep for backward compatibility
+    latency_ms = Column(Float, nullable=False)
 
 
-# Database Engine setup
 db_url = settings.get_db_url()
 
 if db_url.startswith("sqlite"):
     engine = create_engine(db_url, connect_args={"check_same_thread": False})
 else:
-    # PostgreSQL production configurations
     engine = create_engine(
         db_url,
         pool_size=10,
@@ -86,18 +80,16 @@ def record(
     status: str,
     latency_ms: float,
     explanation: str | None = None,
-    # New rich auditing fields
     request_id: str | None = None,
     prompt_hash: str | None = None,
     response_hash: str | None = None,
-    triggered_policies: str | None = None,  # JSON string
-    detected_violations: str | None = None,  # JSON string
+    triggered_policies: str | None = None,
+    detected_violations: str | None = None,
     provider_latency: float | None = None,
     policy_evaluation_time: float | None = None,
     total_request_latency: float | None = None,
     policy_version: str | None = None,
 ) -> None:
-    # Generate hashes if not explicitly provided
     if not prompt_hash and prompt:
         prompt_hash = hashlib.sha256(prompt.encode("utf-8")).hexdigest()
     if not response_hash and response:
@@ -166,7 +158,6 @@ def summary() -> dict:
     with get_session() as session:
         total = session.query(AuditLog).count()
 
-        # by_provider format: {provider: {action_taken: count}} for compatibility
         by_provider_action = {}
         rows = session.query(
             AuditLog.provider, AuditLog.action_taken, func.count(AuditLog.id)
@@ -174,7 +165,6 @@ def summary() -> dict:
         for prov, action, count in rows:
             by_provider_action.setdefault(prov, {})[action] = count
 
-        # Action distribution
         by_action = {}
         action_rows = session.query(
             AuditLog.action_taken, func.count(AuditLog.id)
@@ -182,10 +172,8 @@ def summary() -> dict:
         for action, count in action_rows:
             by_action[action] = count
 
-        # Average latency
         avg_latency = session.query(func.avg(AuditLog.total_request_latency)).scalar() or 0.0
 
-        # Provider distribution
         by_provider = {}
         prov_rows = session.query(
             AuditLog.provider, func.count(AuditLog.id)
@@ -193,7 +181,6 @@ def summary() -> dict:
         for prov, count in prov_rows:
             by_provider[prov] = count
 
-        # Policy violations count
         by_policy = {}
         policy_rows = session.query(
             AuditLog.triggered_policy, func.count(AuditLog.id)
@@ -201,10 +188,8 @@ def summary() -> dict:
         for pol, count in policy_rows:
             by_policy[pol] = count
 
-        # PII detection count
         pii_count = session.query(AuditLog).filter(AuditLog.triggered_policy == "pii").count()
 
-        # Top blocked topics
         blocked_topics = {}
         blocked_rows = session.query(
             AuditLog.triggered_policy, func.count(AuditLog.id)

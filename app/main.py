@@ -1,10 +1,3 @@
-"""
-GuardMesh  --  One policy. Every model.
-
-The whole request lifecycle lives in the /chat endpoint below, in four
-plain steps. Read that function first  --  everything else in this file
-is just plumbing around it.
-"""
 from __future__ import annotations
 
 import time
@@ -14,6 +7,9 @@ import hashlib
 from contextlib import asynccontextmanager
 
 from fastapi import Depends, FastAPI, Header, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
+from fastapi.responses import RedirectResponse
 from pydantic import BaseModel
 
 from app.config import settings
@@ -23,9 +19,7 @@ from app.policy import PolicyEngine
 from app.providers import available_providers, get_provider
 from app.schemas import ChatRequest, ChatResponse
 
-# Record app startup time for uptime metric
 START_TIME = time.time()
-
 policy_engine = PolicyEngine(settings.POLICY_PATH)
 
 
@@ -34,9 +28,6 @@ async def lifespan(app: FastAPI):
     init_db()
     yield
 
-
-from fastapi.middleware.cors import CORSMiddleware
-from fastapi.staticfiles import StaticFiles
 
 app = FastAPI(
     title="GuardMesh",
@@ -57,17 +48,13 @@ app.mount("/ui", StaticFiles(directory="frontend", html=True), name="ui")
 
 
 def require_api_key(x_api_key: str | None = Header(default=None)):
-    """No-op if GUARDMESH_API_KEY isn't set (handy for local testing)."""
     if settings.GUARDMESH_API_KEY and x_api_key != settings.GUARDMESH_API_KEY:
         raise HTTPException(status_code=401, detail="Missing or invalid X-API-Key header")
     return True
 
 
-from fastapi.responses import RedirectResponse
-
 @app.get("/")
 def root():
-    """Root endpoint automatically redirects to the Web UI front page."""
     return RedirectResponse(url="/ui/")
 
 
@@ -133,7 +120,6 @@ async def chat(req: ChatRequest) -> ChatResponse:
     start = time.perf_counter()
     request_id = str(uuid.uuid4())
 
-    # 1. Check the PROMPT against policy before it reaches any model.
     t_eval_start = time.perf_counter()
     clean_prompt, prompt_violations = policy_engine.evaluate(req.prompt, req.provider)
     action, policy_name = policy_engine.summarize(prompt_violations)
@@ -173,7 +159,6 @@ async def chat(req: ChatRequest) -> ChatResponse:
             latency_ms=round(latency, 2), status="success",
         )
 
-    # 2. Call the actual model  --  same call shape no matter the provider (with Failover)
     actual_provider = req.provider
     call_status = "success"
     provider_latency_ms = 0.0
@@ -189,9 +174,8 @@ async def chat(req: ChatRequest) -> ChatResponse:
             break
         except Exception as exc:
             if attempt == 0:
-                continue # Retry once
+                continue
             else:
-                # Primary failed or missing key, attempt automatic failover to another healthy/configured provider
                 failover_success = False
                 for backup_name in available_providers():
                     if backup_name == req.provider:
@@ -211,7 +195,6 @@ async def chat(req: ChatRequest) -> ChatResponse:
                     raw_reply = f"Provider error after failover: {exc}"
                     call_status = "error"
 
-    # 3. Check the RESPONSE against policy before returning it to the user.
     t_eval_resp_start = time.perf_counter()
     raw_reply = raw_reply or ""
     clean_reply, reply_violations = policy_engine.evaluate(raw_reply, actual_provider)
@@ -239,7 +222,6 @@ async def chat(req: ChatRequest) -> ChatResponse:
             "remediation_suggestion": get_remediation(final_policy)
         }
 
-    # 4. Log everything
     latency = (time.perf_counter() - start) * 1000
     all_violations = prompt_violations + reply_violations
     record(
@@ -278,15 +260,12 @@ class PolicyUpdateRequest(BaseModel):
 
 @app.post("/reload-policy", dependencies=[Depends(require_api_key)])
 def reload_policy():
-    """Edit configs/policy.yaml, call this, and the new rules apply
-    immediately  --  no restart needed."""
     raw = policy_engine.reload()
     return {"status": "reloaded", "base_checks": list(raw.get("base", {}).keys())}
 
 
 @app.post("/update-policy", dependencies=[Depends(require_api_key)])
 def update_policy(req: PolicyUpdateRequest):
-    """Overwrites configs/policy.yaml and reloads the Policy Engine immediately."""
     with open(settings.POLICY_PATH, "w", encoding="utf-8") as f:
         f.write(req.yaml_content)
     raw = policy_engine.reload()
@@ -295,7 +274,4 @@ def update_policy(req: PolicyUpdateRequest):
 
 @app.get("/policy/effective/{provider}", dependencies=[Depends(require_api_key)])
 def effective_policy(provider: str):
-    """Returns the fully merged (base + overlay) policy actually
-    enforced for one provider  --  makes the inheritance bonus visible
-    and independently verifiable, not just asserted in code."""
     return policy_engine._merge(provider.lower())

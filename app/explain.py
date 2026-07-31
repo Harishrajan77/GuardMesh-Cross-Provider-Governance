@@ -1,15 +1,4 @@
-"""
-A small LangChain chain: PromptTemplate -> LLM -> StrOutputParser.
-
-Used only when a request is redacted or blocked. Instead of showing
-the user a bare label like "policy: toxicity", this generates one
-plain-English sentence explaining the decision  --  reusing whichever
-provider's LLM handled the request, via that provider's get_llm().
-
-This is deliberately the ONE place an LLM call is used for something
-other than answering the user's prompt, to keep the chain's purpose
-obvious and easy to explain on its own.
-"""
+import asyncio
 from langchain_core.output_parsers import StrOutputParser
 from langchain_core.prompts import ChatPromptTemplate
 
@@ -24,8 +13,6 @@ _PROMPT = ChatPromptTemplate.from_template(
 
 
 async def explain(llm, action: str, policy: str) -> str:
-    """llm: any LangChain BaseChatModel, e.g. provider.get_llm()."""
-    import asyncio
     try:
         chain = _PROMPT | llm | StrOutputParser()
         return await asyncio.wait_for(

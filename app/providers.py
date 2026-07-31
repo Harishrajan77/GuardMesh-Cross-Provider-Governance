@@ -1,18 +1,3 @@
-"""
-Provider adapters  --  built on LangChain's chat model classes, not raw
-provider SDKs.
-
-This is the actual point of using LangChain here: it already solves
-"one interface across different LLM vendors"  --  which is exactly the
-problem GuardMesh's provider layer needs solved. ChatOpenAI, ChatGroq,
-and ChatGoogleGenerativeAI all implement the same LangChain interface
-(`ainvoke([HumanMessage(...)]) -> AIMessage`), so main.py never needs
-to know or care which vendor is underneath.
-
-No mock fallback: if a provider's API key is missing, it fails loudly
-at startup with a clear error, rather than silently returning a canned
-reply. This project only runs with real, working API keys.
-"""
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
@@ -28,15 +13,11 @@ class BaseProvider(ABC):
 
     @abstractmethod
     def get_llm(self, model: str | None = None) -> BaseChatModel:
-        """Return the underlying LangChain chat model for this provider.
-        Exposed so other LangChain components (e.g. the explanation
-        chain in app/explain.py) can reuse the same client."""
         ...
 
     async def chat(self, prompt: str, model: str | None = None) -> str:
         import asyncio
         llm = self.get_llm(model)
-        # Offload LLM call to worker thread pool so FastAPI main loop is never blocked
         response = await asyncio.wait_for(
             asyncio.to_thread(llm.invoke, [HumanMessage(content=prompt)]),
             timeout=20.0
@@ -46,7 +27,6 @@ class BaseProvider(ABC):
     async def check_health(self) -> str:
         try:
             llm = self.get_llm()
-            # Simple invocation with a short timeout to check connection
             await llm.ainvoke([HumanMessage(content="ok")], config={"timeout": 3.0})
             return "healthy"
         except Exception:
@@ -60,7 +40,7 @@ class OpenAIProvider(BaseProvider):
         self.api_key = settings.OPENAI_API_KEY
         self.default_model = settings.OPENAI_MODEL
         if not self.api_key:
-            raise RuntimeError("OPENAI_API_KEY is not set  --  required (no mock mode).")
+            raise RuntimeError("OPENAI_API_KEY is not set.")
         self._llm = self._build(self.default_model)
 
     def _build(self, model: str) -> BaseChatModel:
@@ -80,7 +60,7 @@ class GroqProvider(BaseProvider):
         self.api_key = settings.GROQ_API_KEY
         self.default_model = settings.GROQ_MODEL
         if not self.api_key:
-            raise RuntimeError("GROQ_API_KEY is not set  --  required (no mock mode).")
+            raise RuntimeError("GROQ_API_KEY is not set.")
         self._llm = self._build(self.default_model)
 
     def _build(self, model: str) -> BaseChatModel:
@@ -100,7 +80,7 @@ class GeminiProvider(BaseProvider):
         self.api_key = settings.GEMINI_API_KEY
         self.default_model = settings.GEMINI_MODEL
         if not self.api_key:
-            raise RuntimeError("GEMINI_API_KEY is not set  --  required (no mock mode).")
+            raise RuntimeError("GEMINI_API_KEY is not set.")
         self._llm = self._build(self.default_model)
 
     def _build(self, model: str) -> BaseChatModel:
@@ -130,7 +110,7 @@ def get_provider(name: str) -> BaseProvider:
     if key not in _REGISTRY:
         raise ValueError(f"Unknown provider '{name}'. Available: {list(_REGISTRY)}")
     if key not in _INSTANCES:
-        _INSTANCES[key] = _REGISTRY[key]()  # raises RuntimeError if key missing
+        _INSTANCES[key] = _REGISTRY[key]()
     return _INSTANCES[key]
 
 

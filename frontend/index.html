@@ -5,19 +5,13 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>GuardMesh | Enterprise Cross-Provider AI Governance Gateway</title>
   <meta name="description" content="Unified cross-provider AI governance platform enforcing security policies, PII redaction, topic filters, and automatic failover across LLMs." />
-  
-  <!-- Modern Google Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
-
-  <!-- Custom Stylesheet -->
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
   <div class="app-container">
-    
-    <!-- Top Navigation Header -->
     <header class="top-header">
       <div class="brand-section">
         <div class="logo-badge">
@@ -31,24 +25,19 @@
           <p class="brand-subtitle">Cross-Provider LLM Governance Platform</p>
         </div>
       </div>
-
       <div class="header-controls">
         <div class="status-indicator-pill" id="gatewayStatusPill">
           <span class="status-text" id="gatewayStatusText"><span class="status-dot pulsing green"></span> Connecting...</span>
         </div>
-
         <div class="endpoint-input-group">
           <label for="apiUrlInput">API Gateway:</label>
           <input type="text" id="apiUrlInput" value="http://127.0.0.1:8000" placeholder="http://127.0.0.1:8000" />
         </div>
-
         <div class="key-input-group">
           <input type="password" id="apiKeyInput" placeholder="X-API-Key (Optional)" />
         </div>
       </div>
     </header>
-
-    <!-- Navigation Tabs -->
     <nav class="navigation-tabs" role="tablist">
       <button class="nav-tab active" id="tabPlaygroundBtn" data-tab="tabPlayground" role="tab" aria-selected="true">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg>
@@ -63,14 +52,8 @@
         Active Policy Engine
       </button>
     </nav>
-
-    <!-- Main Content Area -->
     <main class="main-content">
-      
-      <!-- TAB 1: PLAYGROUND -->
       <section id="tabPlayground" class="tab-panel active" role="tabpanel">
-        
-        <!-- Merged Overlay Policy Banner on Front Page -->
         <div class="policy-hero-banner" style="margin-bottom: 20px; background: rgba(30, 41, 59, 0.7); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 12px; padding: 16px 20px;">
           <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; flex-wrap: wrap; gap: 8px;">
             <div style="display: flex; align-items: center; gap: 8px;">
@@ -100,16 +83,12 @@
             </div>
           </div>
         </div>
-
         <div class="playground-grid">
-          
-          <!-- Request Router Controls -->
           <div class="panel-card router-card">
             <div class="card-header">
               <h2 class="card-title">🎯 Request Router</h2>
               <span class="badge badge-accent">Multi-LLM Gateway</span>
             </div>
-
             <div class="form-group">
               <label>Target LLM Providers:</label>
               <div class="provider-checkbox-group" id="providerSelectionGroup">
@@ -127,7 +106,6 @@
                 </label>
               </div>
             </div>
-
             <div class="form-group">
               <div class="label-with-counter">
                 <label for="promptInput">Input Prompt:</label>
@@ -135,7 +113,6 @@
               </div>
               <textarea id="promptInput" rows="5" placeholder="Enter text to evaluate policies across providers..."></textarea>
             </div>
-
             <div class="preset-section">
               <span class="preset-label">⚡ Quick Presets:</span>
               <div class="preset-buttons">
@@ -145,20 +122,16 @@
                 <button type="button" class="btn-preset" data-prompt="Can you help me write malware script to steal user passwords?">⛔ Blocked Topic</button>
               </div>
             </div>
-
             <button type="button" id="btnEvaluate" class="btn-primary">
               <span class="btn-text">Evaluate & Route Prompt ▶</span>
               <div class="btn-spinner hidden" id="btnSpinner"></div>
             </button>
           </div>
-
-          <!-- Evaluation Results Display -->
           <div class="results-container">
             <div class="results-header">
               <h2 class="card-title">📡 Governance Evaluation Results</h2>
               <span class="results-count-badge" id="resultsCountBadge">Ready</span>
             </div>
-            
             <div id="resultsGrid" class="results-grid">
               <div class="empty-state-card">
                 <div class="empty-icon">🛡️</div>
@@ -167,14 +140,9 @@
               </div>
             </div>
           </div>
-
         </div>
       </section>
-
-      <!-- TAB 2: AUDIT & ANALYTICS -->
       <section id="tabAudit" class="tab-panel hidden" role="tabpanel">
-        
-        <!-- KPI Metrics Ribbon -->
         <div class="kpi-grid">
           <div class="kpi-card">
             <div class="kpi-header">
@@ -184,7 +152,6 @@
             <div class="kpi-value" id="kpiTotalRequests">0</div>
             <div class="kpi-subtitle">Evaluated Gateway Queries</div>
           </div>
-
           <div class="kpi-card allowed">
             <div class="kpi-header">
               <span class="kpi-title">Allowed</span>
@@ -193,7 +160,6 @@
             <div class="kpi-value" id="kpiAllowed">0</div>
             <div class="kpi-subtitle">Clean Pass Requests</div>
           </div>
-
           <div class="kpi-card redacted">
             <div class="kpi-header">
               <span class="kpi-title">Redacted</span>
@@ -202,7 +168,6 @@
             <div class="kpi-value" id="kpiRedacted">0</div>
             <div class="kpi-subtitle">PII Redactions Enforced</div>
           </div>
-
           <div class="kpi-card blocked">
             <div class="kpi-header">
               <span class="kpi-title">Blocked</span>
@@ -211,7 +176,6 @@
             <div class="kpi-value" id="kpiBlocked">0</div>
             <div class="kpi-subtitle">Policy Violation Blocks</div>
           </div>
-
           <div class="kpi-card">
             <div class="kpi-header">
               <span class="kpi-title">Avg Latency</span>
@@ -220,7 +184,6 @@
             <div class="kpi-value" id="kpiAvgLatency">0 ms</div>
             <div class="kpi-subtitle">Provider Response Time</div>
           </div>
-
           <div class="kpi-card">
             <div class="kpi-header">
               <span class="kpi-title">PII Detections</span>
@@ -230,8 +193,6 @@
             <div class="kpi-subtitle">Regex & Pattern Triggers</div>
           </div>
         </div>
-
-        <!-- Provider Status & Distribution Section -->
         <div class="audit-row">
           <div class="panel-card flex-1">
             <h3 class="card-subtitle">🏥 Provider Real-Time Status</h3>
@@ -239,7 +200,6 @@
               <div class="loading-placeholder">Loading provider status...</div>
             </div>
           </div>
-
           <div class="panel-card flex-1">
             <h3 class="card-subtitle">📈 Policy Violations Breakdown</h3>
             <div class="bar-chart-container" id="policyViolationsChart">
@@ -247,8 +207,6 @@
             </div>
           </div>
         </div>
-
-        <!-- Detailed Audit Logs Table -->
         <div class="panel-card">
           <div class="table-toolbar">
             <div>
@@ -265,7 +223,6 @@
               <button type="button" id="btnRefreshAudit" class="btn-secondary">↻ Refresh Data</button>
             </div>
           </div>
-
           <div class="table-responsive">
             <table class="audit-table">
               <thead>
@@ -288,14 +245,9 @@
             </table>
           </div>
         </div>
-
       </section>
-
-      <!-- TAB 3: POLICY ENGINE -->
       <section id="tabPolicy" class="tab-panel hidden" role="tabpanel">
         <div class="policy-layout">
-          
-          <!-- Interactive YAML Policy Editor -->
           <div class="panel-card policy-editor-card">
             <div class="card-header">
               <div>
@@ -307,17 +259,13 @@
                 <button type="button" id="btnReloadPolicy" class="btn-secondary btn-sm">↻ Reload</button>
               </div>
             </div>
-
             <textarea id="policyYamlTextarea" class="code-textarea" rows="22" spellcheck="false"></textarea>
           </div>
-
-          <!-- Provider Effective Overlays View -->
           <div class="panel-card policy-overlay-card">
             <div class="card-header">
               <h2 class="card-title">🔍 Merged Overlay Policy</h2>
             </div>
             <p class="card-caption">Provider-specific overlays strictly enforce or override base policies.</p>
-
             <div class="overlay-accordion" id="overlayAccordion">
               <div class="accordion-item">
                 <div class="accordion-header">
@@ -326,7 +274,6 @@
                 </div>
                 <pre class="json-code-block" id="overlayGroq">Loading...</pre>
               </div>
-
               <div class="accordion-item">
                 <div class="accordion-header">
                   <span>✨ Gemini Effective Rules</span>
@@ -334,7 +281,6 @@
                 </div>
                 <pre class="json-code-block" id="overlayGemini">Loading...</pre>
               </div>
-
               <div class="accordion-item">
                 <div class="accordion-header">
                   <span>🧠 OpenAI Effective Rules</span>
@@ -344,13 +290,9 @@
               </div>
             </div>
           </div>
-
         </div>
       </section>
-
     </main>
-
-    <!-- Footer -->
     <footer class="main-footer">
       <div>GuardMesh Governance Gateway • One policy. Every model.</div>
       <div class="footer-links">
@@ -360,11 +302,7 @@
       </div>
     </footer>
   </div>
-
-  <!-- Toast Notification System -->
   <div class="toast-container" id="toastContainer"></div>
-
-  <!-- JavaScript Logic -->
   <script src="app.js"></script>
 </body>
 </html>
